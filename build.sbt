@@ -1,9 +1,17 @@
-ThisBuild / version := "0.1.0-SNAPSHOT"
+ThisBuild / version := "0.0.1"
 
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "2.13.13"
+
+
+val baseLibraries: Seq[ModuleID] = Seq(
+  "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",
+  "org.json4s" %% "json4s-native" % "4.0.7",
+  "org.json4s" %% "json4s-jackson" % "4.0.7"
+)
 
 lazy val root = (project in file("."))
   .settings(
     name := "SALed",
-    idePackagePrefix := Some("org.saled")
+    idePackagePrefix := Some("org.saled"),
+    libraryDependencies ++= baseLibraries
   )
