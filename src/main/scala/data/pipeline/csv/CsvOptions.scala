@@ -1,11 +1,11 @@
 package org.saled
-package data.sources.csv
+package data.pipeline.csv
 
 import data.builder.Builder
 import data.common.Options
-import org.saled.data.structures.table.TableSchema
+import data.structures.table.TableSchema
 
-case class CsvOptions(
+case class  CsvOptions(
     hasHeader: Option[Boolean] = Some(false),
     hasSeparator: Option[String] = Some(","),
     hasSchema: Option[TableSchema] = None

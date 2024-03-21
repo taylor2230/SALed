@@ -1,5 +1,5 @@
 package org.saled
-package data.sources.csv
+package data.pipeline.csv
 
 import data.structures.table._
 
@@ -22,11 +22,7 @@ trait FromCsv {
       if (csvOptions.hasSchema.nonEmpty) {
         csvOptions.hasSchema.get
       } else if (csvOptions.hasHeader.get) {
-        val headerDDL = csv.head
-          .map((c: String) => {
-            s"$c String"
-          })
-          .mkString(",")
+        val headerDDL = csv.head.map((c: String) => {s"$c String"}).mkString(",")
         val csvHeaderDDL: List[Column] = TableSchemaDDL.createSchema(headerDDL)
         TableSchemaBuilder().withSchema(csvHeaderDDL).build()
       } else {
