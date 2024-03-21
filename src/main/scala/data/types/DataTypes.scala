@@ -58,6 +58,25 @@ object DataTypes {
     }
   }
 
+  case object Float extends DataType[Float] with DatatypeDefinition {
+    override def toString: String = "Double"
+    override val datatypeDefinition: String = "Double"
+
+    override def typeCast(element: Option[Any]): Option[Float] = {
+      if (element.nonEmpty) {
+        element.get match {
+          case x: String => x.toFloatOption
+          case x: Float  => Some(x)
+          case x: Double => Some(x.toFloat)
+          case x: Int    => Some(x.toFloat)
+          case _         => None
+        }
+      } else {
+        None
+      }
+    }
+  }
+
   case object String extends DataType[String] with DatatypeDefinition {
     override def toString: String = "String"
     override val datatypeDefinition: String = "String"

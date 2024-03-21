@@ -53,6 +53,33 @@ trait ColumnBehavior extends Table {
     }
   }
 
+  def dropColumns(cols: String*): TableSet = {
+    val filteredTuples: List[Tuple] = table.map((r: Tuple) => {
+      val filteredRowTuples: ParMap[Column, TupleElement] = r.tuple.filterKeys((c: Column) => {
+        !cols.contains(c.columnName)
+      }).toMap
+      TupleBuilder().withTuple(filteredRowTuples).build()
+    })
+
+    val filteredSchema: TableSchema = {
+      val filteredSchema: List[Column] = tableSchema.schema.filter((c: Column) => {
+        !cols.contains(c.columnName)
+      })
+
+      TableSchemaBuilder().withSchema(filteredSchema).build()
+    }
+
+    TableSetBuilder().withTableSchema(filteredSchema).withTableSet(filteredTuples).build()
+  }
+
+  def dropColumns(cols: List[String]): TableSet = {
+    dropColumns(cols: _*)
+  }
+
+  def dropColumn(col: String): TableSet = {
+    dropColumns(col)
+  }
+
   def withNewColumn(
       col: String,
       newCol: String,
@@ -61,8 +88,7 @@ trait ColumnBehavior extends Table {
   ): TableSet = {
     val newColumnDefinition: Column = ColumnBuilder().withColumnName(newCol).withDatatype(datatype).build()
     val result: List[Tuple] = table.map((row: Tuple) => {
-      val targetColumn =
-        row.tuple.filterKeys((p: Column) => p.columnName == col)
+      val targetColumn = row.tuple.filterKeys((p: Column) => p.columnName == col)
       val expressionColumn: ParMap[Column, TupleElement] = targetColumn
         .map((c: (Column, TupleElement)) => {
           val expressionResult: Option[Any] = executeExpression(c, expression)
@@ -73,10 +99,24 @@ trait ColumnBehavior extends Table {
         })
         .toMap
 
-      TupleBuilder().withTuple(row.tuple ++ expressionColumn).build()
+      val newRow: ParMap[Column, TupleElement] = {
+        if (col == newCol) {
+          row.tuple.filterKeys((c: Column) => c.columnName != newCol).toMap ++ expressionColumn
+        } else {
+          row.tuple
+        }
+      }
+
+      TupleBuilder().withTuple(newRow ++ expressionColumn).build()
     })
 
-    val updatedSchema: List[Column] = tableSchema.schema ++ List(newColumnDefinition)
+    val updatedSchema: List[Column] = {
+      if (col == newCol) {
+        tableSchema.schema.filter((c: Column) => c.columnName != newCol) ++ List(newColumnDefinition)
+      } else {
+        tableSchema.schema ++ List(newColumnDefinition)
+      }
+    }
 
     TableSetBuilder()
       .withTableSchema(tableSchema = TableSchemaBuilder().withSchema(updatedSchema).build())

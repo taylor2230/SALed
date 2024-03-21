@@ -1,8 +1,8 @@
 package org.saled
 package data.structures.behaviors
 
-import org.saled.data.structures.generic.Table
-import org.saled.data.structures.table.{Column, TableSet, TableSetBuilder, Tuple, TupleElement}
+import data.structures.generic.Table
+import data.structures.table._
 
 trait FilterBehavior extends Table {
   private def executePredicate(
@@ -11,19 +11,17 @@ trait FilterBehavior extends Table {
   ): Boolean = {
     if (column._2.tupleElement.nonEmpty) {
       try {
-        val typeCastedValue =
-          column._1.dataType.typeCast(column._2.tupleElement)
+        val typeCastedValue = column._1.dataType.typeCast(column._2.tupleElement).get
         if (predicate.isInstanceOf[typeCastedValue.type => Boolean]) {
-          val passedPredicate: typeCastedValue.type => Boolean =
-            predicate.asInstanceOf[typeCastedValue.type => Boolean]
+          val passedPredicate: typeCastedValue.type => Boolean = predicate.asInstanceOf[typeCastedValue.type => Boolean]
           passedPredicate(typeCastedValue)
         } else {
           println("Invalid predicate execution due to mismatched input type")
           false
         }
       } catch {
-        case _: Exception =>
-          println("Failed predicate conversion; skipping predicate"); false;
+        case x: Exception =>
+          println(s"Failed predicate conversion; skipping predicate; ${x.getMessage}"); false;
       }
     } else {
       false

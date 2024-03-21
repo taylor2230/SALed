@@ -13,6 +13,10 @@ case class TableSchema(schema: List[Column] = List.empty) {
       col.columnName
     })
   }
+
+  override def toString: String = {
+    schema.map((c: Column) => {s"${c.columnName} ${c.dataType.toString}"}).mkString(", ")
+  }
 }
 
 case class TableSchemaBuilder private (schema: List[Column] = List.empty)
@@ -68,8 +72,7 @@ object TableSchemaDDL {
       ddlStringToColumns(ddlString)
     }
     println(
-      s"TableSchema:\n${schema.map((c: Column) => { s"${c.toString} (${c.dataType})" }).mkString(" | ")}"
-        .format(1)
+      s"TableSchema:\n${schema.map((c: Column) => { s"${c.toString} (${c.dataType})" }).mkString(" | ")}\n".format(1)
     )
     schema
   }
@@ -77,11 +80,9 @@ object TableSchemaDDL {
   def inferSchemaDDL(columnSize: Int): List[Column] = {
     val inferredDDL: String = {
       val columnRanges: List[Int] = List.range(0, columnSize)
-      columnRanges
-        .map((c: Int) => {
+      columnRanges.map((c: Int) => {
           s"col_$c String"
-        })
-        .mkString(", ")
+        }).mkString(", ")
     }
 
     val schema: List[Column] = {

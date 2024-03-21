@@ -10,11 +10,11 @@
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
         <option name="modules">
           <set>
-            <option value="$USER_HOME$/Documents/Projects/SALed" />
-            <option value="$USER_HOME$/Documents/Projects/SALed/project" />
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/project" />
           </set>
         </option>
-        <option name="sbtVersion" value="1.9.8" />
+        <option name="sbtVersion" value="1.9.9" />
       </SbtProjectSettings>
     </option>
   </component>

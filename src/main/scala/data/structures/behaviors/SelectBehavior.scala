@@ -33,6 +33,6 @@ trait SelectBehavior extends Table {
   }
 
   def select(col: String): TableSet = {
-    select(List(col))
+    select(col)
   }
 }
