@@ -4,11 +4,11 @@ package data.pipeline
 import data.pipeline.csv.{FromCsv, ToCsv}
 
 
-private object Source extends FromCsv {
+object Source extends FromCsv {
 
 }
 
-private object Sink extends ToCsv {
+object Sink extends ToCsv {
 
 }
 

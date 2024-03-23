@@ -11,8 +11,13 @@ case class TupleBuilder private (
     tuple: ParMap[Column, TupleElement] = ParMap.empty
 ) extends Builder[Tuple] {
 
-  def withTuple(tuple: ParMap[Column, TupleElement]): TupleBuilder =
-    copy(tuple = tuple)
+  def withTuple(tuple: ParMap[Column, TupleElement]): TupleBuilder = {
+    if (tuple.nonEmpty) {
+      copy(tuple = tuple)
+    } else {
+      copy(ParMap.empty)
+    }
+  }
 
   override def build(): Tuple = Tuple(tuple = tuple)
 }

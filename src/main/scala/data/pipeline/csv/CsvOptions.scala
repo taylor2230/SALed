@@ -20,11 +20,21 @@ case class CsvOptionsBuilder private (
   def withHeader(hasHeader: Boolean): CsvOptionsBuilder =
     copy(hasHeader = Some(hasHeader))
 
-  def withSeparator(hasSeparator: String): CsvOptionsBuilder =
-    copy(hasSeparator = Some(hasSeparator))
+  def withSeparator(hasSeparator: String): CsvOptionsBuilder = {
+    if (hasSeparator.isBlank) {
+      copy(hasSeparator = None)
+    } else {
+      copy(hasSeparator = Some(hasSeparator))
+    }
+  }
 
-  def withSchema(hasSchema: TableSchema): CsvOptionsBuilder =
-    copy(hasSchema = Some(hasSchema))
+  def withSchema(hasSchema: TableSchema): CsvOptionsBuilder = {
+    if (hasSchema.schema.isEmpty) {
+      copy(hasSchema = None)
+    } else {
+      copy(hasSchema = Some(hasSchema))
+    }
+  }
 
   override def build(): CsvOptions =
     CsvOptions(
