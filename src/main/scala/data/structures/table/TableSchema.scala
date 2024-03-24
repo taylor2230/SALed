@@ -68,13 +68,17 @@ object TableSchemaDDL {
   }
 
   def createSchema(ddlString: String): List[Column] = {
-    val schema: List[Column] = {
-      ddlStringToColumns(ddlString)
+    if (ddlString.nonEmpty && !ddlString.isBlank) {
+      val schema: List[Column] = {
+        ddlStringToColumns(ddlString)
+      }
+      println(
+        s"TableSchema:\n${schema.map((c: Column) => { s"${c.toString} (${c.dataType})" }).mkString(" | ")}\n".format(1)
+      )
+      schema
+    } else {
+      List.empty
     }
-    println(
-      s"TableSchema:\n${schema.map((c: Column) => { s"${c.toString} (${c.dataType})" }).mkString(" | ")}\n".format(1)
-    )
-    schema
   }
 
   def inferSchemaDDL(columnSize: Int): List[Column] = {

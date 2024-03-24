@@ -52,6 +52,6 @@ object Main {
         .dropColumn("LatD")
 
     csvTableSet.display()
-    Pipeline.sink.toCsv(csvTableSet, CsvOptionsBuilder().build(), "/Users/shanetaylor/")
+    Pipeline.sink.toLocalCsv(csvTableSet, CsvOptionsBuilder().build(), "/Users/shanetaylor/")
   }
 }
