@@ -5,7 +5,7 @@ import data.builder.Builder
 import data.common.Options
 import data.structures.table.TableSchema
 
-case class  CsvOptions(
+case class CsvOptions(
     hasHeader: Option[Boolean] = Some(false),
     hasSeparator: Option[String] = Some(","),
     hasSchema: Option[TableSchema] = None
