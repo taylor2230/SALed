@@ -1,8 +1,8 @@
 package org.saled
 package data.structures.behaviors
 
-import org.saled.data.structures.generic.Table
-import org.saled.data.structures.table.{Column, TableSchema, TableSchemaBuilder, TableSet, TableSetBuilder, Tuple, TupleBuilder, TupleElement}
+import data.structures.generic.Table
+import data.structures.table._
 
 import scala.collection.parallel.immutable.ParMap
 
@@ -33,6 +33,6 @@ trait SelectBehavior extends Table {
   }
 
   def select(col: String): TableSet = {
-    select(col)
+    select(List(col))
   }
 }

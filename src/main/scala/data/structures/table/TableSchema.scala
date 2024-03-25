@@ -6,6 +6,7 @@ import data.structures.table.TableSchemaDDL.createSchema
 import data.types.{DataType, DataTypes}
 
 import scala.collection.immutable.ListMap
+import scala.collection.parallel.immutable.{ParMap, ParSeq}
 
 case class TableSchema(schema: List[Column] = List.empty) {
   def getSchemaStrings: List[String] = {
@@ -36,7 +37,13 @@ object TableSchemaDDL {
   private def getDatatype(dataTypeString: String): DataType[_] = {
     dataTypeString match {
       case DataTypes.Integer.datatypeDefinition => DataTypes.Integer
+      case DataTypes.Double.datatypeDefinition => DataTypes.Double
+      case DataTypes.Float.datatypeDefinition => DataTypes.Float
+      case DataTypes.BigInteger.datatypeDefinition => DataTypes.BigInteger
+      case DataTypes.Boolean.datatypeDefinition => DataTypes.Boolean
       case DataTypes.String.datatypeDefinition  => DataTypes.String
+      case DataTypes.List.datatypeDefinition => DataTypes.List
+      case DataTypes.Map.datatypeDefinition => DataTypes.Map
       case _                                    => DataTypes.String
     }
   }
@@ -94,5 +101,24 @@ object TableSchemaDDL {
     }
 
     schema
+  }
+
+  def inferJsonSchemaDDL(json: ParSeq[Map[String, Any]]): List[Column] = {
+    val jsonKeys: ParSeq[(String, Option[DataType[_]])] = json.flatMap((r: Map[String, Any]) => {
+      r.map((column: (String, Any)) => {
+        (column._1, DataTypes.getDatatype(Option(column._2)))
+      })
+    })
+
+    jsonKeys.map((col: (String, Option[DataType[_]])) => {
+      if (col._2.nonEmpty) {
+        Some(ColumnBuilder().withColumnName(col._1).withDatatype(col._2.get).build())
+      } else {
+        None
+      }
+    })
+      .filter((c: Option[Column]) => {c.nonEmpty})
+      .map((c: Option[Column]) => {c.get})
+      .toList
   }
 }
