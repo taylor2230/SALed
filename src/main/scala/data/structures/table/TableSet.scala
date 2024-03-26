@@ -35,22 +35,22 @@ case class TableSetBuilder private (
 object ToTableSet {
   def createTableSet(data: List[List[_]], schema: TableSchema): TableSet = {
     val tableTuples: List[Tuple] = data.map((r: List[_]) => {
-      val zippedRow: List[(Column, Any)] = {
-        for ((column, row) <- schema.schema zip r) yield (column, row)
+      val zippedRow: List[(String, Any)] = {
+        for ((column, row) <- schema.schema zip r) yield (column.columnName, row)
       }
 
 
-      val tupledRows: ParMap[Column, TupleElement] = zippedRow.par
-        .map((row: (Column, Any)) => {
+      val tupledRows: ParMap[String, TupleElement] = zippedRow.par
+        .map((row: (String, Any)) => {
           val tupleElement: TupleElement =
             TupleElementBuilder().withTupleElement(Option(row._2)).build()
           (row._1, tupleElement)
         })
         .toMap
 
-      val missingTuples: ParMap[Column, TupleElement] =
-        schema.schema.filter((c: Column) => !tupledRows.contains(c)).map((c: Column) => {
-          (c, TupleElementBuilder().withTupleElement(None).build())
+      val missingTuples: ParMap[String, TupleElement] =
+        schema.schema.filter((c: Column) => !tupledRows.contains(c.columnName)).map((c: Column) => {
+          (c.columnName, TupleElementBuilder().withTupleElement(None).build())
         }).par.toMap
 
       TupleBuilder().withTuple(tupledRows ++ missingTuples).build()

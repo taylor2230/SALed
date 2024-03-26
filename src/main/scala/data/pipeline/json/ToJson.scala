@@ -11,8 +11,8 @@ trait ToJson {
     implicit val format: DefaultFormats.type = DefaultFormats
     val formattedString: List[(String, Any)] = {
       tableSet.table.flatMap((r: Tuple) => {
-        r.tuple.map((col: (Column, TupleElement)) => {
-          (col._1.columnName, col._2.tupleElement.getOrElse("Null"))
+        r.tuple.map((col: (String, TupleElement)) => {
+          (col._1, col._2.tupleElement.getOrElse("Null"))
         })
       })
     }

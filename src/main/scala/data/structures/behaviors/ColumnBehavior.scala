@@ -9,7 +9,7 @@ import scala.collection.parallel.immutable.ParMap
 
 trait ColumnBehavior extends Table {
   private def executeExpression(
-      column: (Column, TupleElement),
+      column: (String, TupleElement),
       expression: _ => Option[Any]
   ): Option[Any] = {
     if (column._2.tupleElement.nonEmpty) {
@@ -29,9 +29,9 @@ trait ColumnBehavior extends Table {
   def castColumnDataType(col: String, datatype: DataType[_]): TableSet = {
     try {
       val result: List[Tuple] = table.map((row: Tuple) => {
-        val updatedRow: ParMap[Column, TupleElement] =
-          row.tuple.map((c: (Column, TupleElement)) => {
-            if (c._1.columnName == col) {
+        val updatedRow: ParMap[String, TupleElement] =
+          row.tuple.map((c: (String, TupleElement)) => {
+            if (c._1 == col) {
               val castedValue: Option[Any] =
                 datatype.typeCast(c._2.tupleElement)
               val column: Column = ColumnBuilder()
@@ -39,7 +39,7 @@ trait ColumnBehavior extends Table {
                 .withDatatype(DataTypes.getDatatype(castedValue).get)
                 .build()
               (
-                column,
+                column.columnName,
                 TupleElementBuilder().withTupleElement(castedValue).build()
               )
             } else {
@@ -50,13 +50,9 @@ trait ColumnBehavior extends Table {
       })
 
       val updatedSchema: TableSchema = {
-        val castedColumn: Column = result.head.tuple
-          .filterKeys((c: Column) => c.columnName == col)
-          .head
-          ._1
         val castedSchema: List[Column] = tableSchema.schema.map((c: Column) => {
           if (c.columnName == col) {
-            castedColumn
+            ColumnBuilder().withColumnName(col).withDatatype(datatype).build()
           } else {
             c
           }
@@ -81,9 +77,9 @@ trait ColumnBehavior extends Table {
 
   def dropColumns(cols: String*): TableSet = {
     val filteredTuples: List[Tuple] = table.map((r: Tuple) => {
-      val filteredRowTuples: ParMap[Column, TupleElement] = r.tuple
-        .filterKeys((c: Column) => {
-          !cols.contains(c.columnName)
+      val filteredRowTuples: ParMap[String, TupleElement] = r.tuple
+        .filterKeys((c: String) => {
+          !cols.contains(c)
         })
         .toMap
       TupleBuilder().withTuple(filteredRowTuples).build()
@@ -122,21 +118,21 @@ trait ColumnBehavior extends Table {
       ColumnBuilder().withColumnName(newCol).withDatatype(datatype).build()
     val result: List[Tuple] = table.map((row: Tuple) => {
       val targetColumn =
-        row.tuple.filterKeys((p: Column) => p.columnName == col)
-      val expressionColumn: ParMap[Column, TupleElement] = targetColumn
-        .map((c: (Column, TupleElement)) => {
+        row.tuple.filterKeys((p: String) => p == col)
+      val expressionColumn: ParMap[String, TupleElement] = targetColumn
+        .map((c: (String, TupleElement)) => {
           val expressionResult: Option[Any] = executeExpression(c, expression)
           (
-            newColumnDefinition,
+            newColumnDefinition.columnName,
             TupleElementBuilder().withTupleElement(expressionResult).build()
           )
         })
         .toMap
 
-      val newRow: ParMap[Column, TupleElement] = {
+      val newRow: ParMap[String, TupleElement] = {
         if (col == newCol) {
           row.tuple
-            .filterKeys((c: Column) => c.columnName != newCol)
+            .filterKeys((c: String) => c != newCol)
             .toMap ++ expressionColumn
         } else {
           row.tuple
@@ -161,6 +157,13 @@ trait ColumnBehavior extends Table {
         TableSchemaBuilder().withSchema(updatedSchema).build()
       )
       .withTableSet(result)
+      .build()
+  }
+
+  def explodeColumn(explodeCol: String): TableSet = {
+    TableSetBuilder()
+      .withTableSet(table = table)
+      .withTableSchema(tableSchema = tableSchema)
       .build()
   }
 }

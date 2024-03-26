@@ -25,8 +25,8 @@ trait Table extends TableStructure {
       if (row.tuple.nonEmpty) {
         val adjustedRow = {
           row.tuple
-            .map((r: (Column, TupleElement)) => {
-              (r._1.toString, r._2)
+            .map((r: (String, TupleElement)) => {
+              (r._1, r._2)
             })
         }
 

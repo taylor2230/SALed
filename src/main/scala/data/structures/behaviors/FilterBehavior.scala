@@ -3,15 +3,19 @@ package data.structures.behaviors
 
 import data.structures.generic.Table
 import data.structures.table._
+import data.types.DataType
+
+import scala.collection.parallel.immutable.ParMap
 
 trait FilterBehavior extends Table {
   private def executePredicate(
-      column: (Column, TupleElement),
+      column: (String, TupleElement),
+      dataType: DataType[_],
       predicate: _ => Boolean
   ): Boolean = {
     if (column._2.tupleElement.nonEmpty) {
       try {
-        val typeCastedValue = column._1.dataType.typeCast(column._2.tupleElement).get
+        val typeCastedValue = dataType.typeCast(column._2.tupleElement).get
         if (predicate.isInstanceOf[typeCastedValue.type => Boolean]) {
           val passedPredicate: typeCastedValue.type => Boolean = predicate.asInstanceOf[typeCastedValue.type => Boolean]
           passedPredicate(typeCastedValue)
@@ -31,10 +35,10 @@ trait FilterBehavior extends Table {
   def isNull(cols: String*): TableSet = {
     val columnsSet: Set[String] = listToSet(cols)
     val result: List[Tuple] = table.filter((t: Tuple) => {
-      val filteredTuple = t.tuple.filter((col: (Column, TupleElement)) => {
-        columnsSet.contains(col._1.columnName) && col._2.tupleElement.isEmpty
+      val nullColumnsPredicate = columnsSet.filter((c: String) => {
+        t.tuple(c).tupleElement.isEmpty
       })
-      filteredTuple.size < tableSchema.schema.size
+      nullColumnsPredicate.size == columnsSet.size
     })
 
     TableSetBuilder()
@@ -54,10 +58,10 @@ trait FilterBehavior extends Table {
   def nonNull(cols: String*): TableSet = {
     val columnsSet: Set[String] = listToSet(cols)
     val result: List[Tuple] = table.filter((t: Tuple) => {
-      val filteredTuple = t.tuple.filter((col: (Column, TupleElement)) => {
-        columnsSet.contains(col._1.columnName) && col._2.tupleElement.nonEmpty
+      val nonNullColumnsPredicate = columnsSet.filter((c: String) => {
+        t.tuple(c).tupleElement.nonEmpty
       })
-      filteredTuple.size < tableSchema.schema.size
+      nonNullColumnsPredicate.size == columnsSet.size
     })
 
     TableSetBuilder()
@@ -75,16 +79,25 @@ trait FilterBehavior extends Table {
   }
 
   def where(col: String, predicate: _ => Boolean): TableSet = {
-    val result: List[Tuple] = table.filter((t: Tuple) => {
-      val passFilter = t.tuple
-        .filterKeys((r: Column) => r.columnName == col)
-        .filter((r: (Column, TupleElement)) => executePredicate(r, predicate))
-      passFilter.nonEmpty
-    })
+    val columnDefinition: Option[Column] = tableSchema.schema.find((c: Column) => c.columnName == col)
+
+    val tableSet: List[Tuple] = {
+      if (columnDefinition.nonEmpty) {
+        val result: List[Tuple] = table.filter((t: Tuple) => {
+          val passFilter = t.tuple
+            .filterKeys((r: String) => r == col)
+            .filter((r: (String, TupleElement)) => executePredicate(r, columnDefinition.get.dataType, predicate))
+          passFilter.nonEmpty
+        })
+        result
+      } else {
+        table
+      }
+    }
 
     TableSetBuilder()
       .withTableSchema(tableSchema = tableSchema)
-      .withTableSet(result)
+      .withTableSet(tableSet)
       .build()
   }
 }
