@@ -10,8 +10,8 @@ trait SelectBehavior extends Table {
   def select(cols: String*): TableSet = {
     val columnsSet: Set[String] = listToSet(cols)
     val result: List[Tuple] = table.map((row: Tuple) => {
-      val filteredTuple: ParMap[Column, TupleElement] = row.tuple.par
-        .filterKeys((column: Column) => columnsSet.contains(column.columnName))
+      val filteredTuple: ParMap[String, TupleElement] = row.tuple.par
+        .filterKeys((column: String) => columnsSet.contains(column))
         .toMap
       TupleBuilder().withTuple(filteredTuple).build()
     })
