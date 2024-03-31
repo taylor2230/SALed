@@ -30,13 +30,15 @@ trait FromJson {
     val extractedJson: ParSeq[Map[String, Any]] = extractJson(json)
 
     val inferredJsonSchema: TableSchema = {
-      val columns = TableSchemaDDL.inferJsonSchemaDDL(extractedJson)
+      val columns: List[Column] = TableSchemaDDL.inferJsonSchemaDDL(extractedJson).distinct
       TableSchemaBuilder().withSchema(columns).build()
     }
 
     val structuredJsonData: List[List[_]] = extractedJson
       .map((r: Map[String, Any]) => {
-        r.values.toList
+        inferredJsonSchema.schema.map((c: Column) => {
+          r.getOrElse(c.columnName, None)
+        })
       })
       .toList
 

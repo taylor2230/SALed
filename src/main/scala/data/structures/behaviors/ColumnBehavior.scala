@@ -160,10 +160,64 @@ trait ColumnBehavior extends Table {
       .build()
   }
 
-  def explodeColumn(explodeCol: String): TableSet = {
+  private def explodeArray(explodeCol: String): TableSet = {
+    val explodedTuples: List[Tuple] = table.flatMap((r: Tuple) => {
+      val column: Option[TupleElement] = r.tuple.get(explodeCol)
+
+      if (column.nonEmpty) {
+        val columnValue: Option[Any] = column.get.tupleElement
+        if (columnValue.get != None) {
+          val columnList = column.get.tupleElement.get.asInstanceOf[List[_]]
+          val explodedTuple = columnList.map((e: Any) => {
+            val newTuple = TupleElementBuilder().withTupleElement(Some(e)).build()
+            TupleBuilder().withTuple(r.tuple ++ ParMap((explodeCol, newTuple))).build()
+          })
+          explodedTuple
+        } else {
+          List(r)
+        }
+      } else {
+        List(r)
+      }
+    })
+
+    val updatedTableSchema: TableSchema = {
+      val schema = tableSchema.schema.map((column: Column) => {
+        if (column.columnName == explodeCol) {
+          ColumnBuilder().withColumnName(explodeCol).withDatatype(DataTypes.String).build()
+        } else {
+          column
+        }
+      })
+      TableSchemaBuilder().withSchema(schema).build()
+    }
+
     TableSetBuilder()
-      .withTableSet(table = table)
-      .withTableSchema(tableSchema = tableSchema)
+      .withTableSet(table = explodedTuples)
+      .withTableSchema(tableSchema = updatedTableSchema)
       .build()
+
+  }
+
+  def explodeColumn(explodeCol: String): TableSet = {
+    val columnSchema: Option[Column] =  tableSchema.schema.find((p: Column) => {
+      p.columnName == explodeCol
+    })
+
+    if (columnSchema.nonEmpty) {
+      columnSchema.get.dataType match {
+        case x: DataTypes.List.type => explodeArray(explodeCol)
+        case _ =>
+          TableSetBuilder()
+            .withTableSet(table = table)
+            .withTableSchema(tableSchema = tableSchema)
+            .build()
+      }
+    } else {
+      TableSetBuilder()
+        .withTableSet(table = table)
+        .withTableSchema(tableSchema = tableSchema)
+        .build()
+    }
   }
 }
