@@ -3,18 +3,18 @@ package data.pipeline.csv
 
 import data.builder.Builder
 import data.common.Options
-import data.structures.table.TableSchema
+import data.structures.table.Schema
 
 case class CsvOptions(
     hasHeader: Option[Boolean] = Some(false),
     hasSeparator: Option[String] = Some(","),
-    hasSchema: Option[TableSchema] = None
+    hasSchema: Option[Schema] = None
 ) extends Options
 
 case class CsvOptionsBuilder private (
     hasHeader: Option[Boolean] = Some(true),
     hasSeparator: Option[String] = Some(","),
-    hasSchema: Option[TableSchema] = None
+    hasSchema: Option[Schema] = None
 ) extends Builder[CsvOptions] {
 
   def withHeader(hasHeader: Boolean): CsvOptionsBuilder =
@@ -28,7 +28,7 @@ case class CsvOptionsBuilder private (
     }
   }
 
-  def withSchema(hasSchema: TableSchema): CsvOptionsBuilder = {
+  def withSchema(hasSchema: Schema): CsvOptionsBuilder = {
     if (hasSchema.schema.isEmpty) {
       copy(hasSchema = None)
     } else {

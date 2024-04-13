@@ -1,38 +1,38 @@
 package org.saled
 package data.structures.behaviors
 
-import data.structures.generic.Table
+import data.structures.generic.DatasetStructure
 import data.structures.table._
 
 import scala.collection.parallel.immutable.ParMap
 
-trait SelectBehavior extends Table {
-  def select(cols: String*): TableSet = {
+trait SelectBehavior extends DatasetStructure {
+  def select(cols: String*): DataFrame = {
     val columnsSet: Set[String] = listToSet(cols)
-    val result: List[Tuple] = table.map((row: Tuple) => {
-      val filteredTuple: ParMap[String, TupleElement] = row.tuple.par
+    val result: List[Row] = dataFrame.map((row: Row) => {
+      val filteredTuple: ParMap[String, ColumnData] = row.row.par
         .filterKeys((column: String) => columnsSet.contains(column))
         .toMap
-      TupleBuilder().withTuple(filteredTuple).build()
+      RowBuilder().withRow(filteredTuple).build()
     })
 
-    val filterColumns: List[Column] = tableSchema.schema.filter((c: Column) =>
+    val filterColumns: List[ColumnDefinition] = dataFrameSchema.schema.filter((c: ColumnDefinition) =>
       columnsSet.contains(c.columnName)
     )
 
-    val newTableSchema: TableSchema =
-      TableSchemaBuilder().withSchema(filterColumns).build()
-    TableSetBuilder()
-      .withTableSchema(newTableSchema)
-      .withTableSet(result)
+    val newTableSchema: Schema =
+      SchemaBuilder().withSchema(filterColumns).build()
+    DataFrameBuilder()
+      .withSchema(newTableSchema)
+      .withData(result)
       .build()
   }
 
-  def select(cols: List[String]): TableSet = {
+  def select(cols: List[String]): DataFrame = {
     select(cols: _*)
   }
 
-  def select(col: String): TableSet = {
+  def select(col: String): DataFrame = {
     select(List(col))
   }
 }

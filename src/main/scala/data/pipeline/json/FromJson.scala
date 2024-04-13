@@ -26,24 +26,24 @@ trait FromJson {
         .map((r: Option[Map[String, Any]]) => { r.get })
     }
 
-  def fromJson(json: Seq[String]): TableSet = {
+  def fromJson(json: Seq[String]): DataFrame = {
     val extractedJson: ParSeq[Map[String, Any]] = extractJson(json)
 
-    val inferredJsonSchema: TableSchema = {
-      val columns: List[Column] = TableSchemaDDL.inferJsonSchemaDDL(extractedJson).distinct
-      TableSchemaBuilder().withSchema(columns).build()
+    val inferredJsonSchema: Schema = {
+      val columns: List[ColumnDefinition] = SchemaDDL.inferJsonSchemaDDL(extractedJson).distinct
+      SchemaBuilder().withSchema(columns).build()
     }
 
     val structuredJsonData: List[List[_]] = extractedJson
       .map((r: Map[String, Any]) => {
-        inferredJsonSchema.schema.map((c: Column) => {
+        inferredJsonSchema.schema.map((c: ColumnDefinition) => {
           r.getOrElse(c.columnName, None)
         })
       })
       .toList
 
-    val tableSet: TableSet =
-      ToTableSet.createTableSet(structuredJsonData, inferredJsonSchema)
+    val tableSet: DataFrame =
+      ToDataFrame.createDataFrame(structuredJsonData, inferredJsonSchema)
 
     tableSet
   }

@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/Code.SALed.iml" filepath="$PROJECT_DIR$/.idea/modules/Code.SALed.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/project.SALed-build.iml" filepath="$PROJECT_DIR$/.idea/modules/project.SALed-build.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/Code.SALed.SALed-build.iml" filepath="$PROJECT_DIR$/.idea/modules/Code.SALed.SALed-build.iml" />
     </modules>
   </component>
 </project>

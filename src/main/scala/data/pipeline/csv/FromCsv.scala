@@ -3,6 +3,8 @@ package data.pipeline.csv
 
 import data.structures.table._
 
+import org.saled.data.structures.generic.Dataset
+
 import java.nio.file.Path
 import scala.collection.parallel.CollectionConverters.ImmutableIterableIsParallelizable
 import scala.io.{BufferedSource, Source}
@@ -17,26 +19,26 @@ trait FromCsv {
         .toList
     }
 
-  private val defineCsvSchema: (List[List[String]], CsvOptions) => TableSchema =
+  private val defineCsvSchema: (List[List[String]], CsvOptions) => Schema =
     (csv: List[List[String]], csvOptions: CsvOptions) => {
       if (csvOptions.hasSchema.nonEmpty) {
         csvOptions.hasSchema.get
       } else if (csvOptions.hasHeader.get) {
         val headerDDL = csv.head.map((c: String) => {s"$c String"}).mkString(",")
-        val csvHeaderDDL: List[Column] = TableSchemaDDL.createSchema(headerDDL)
-        TableSchemaBuilder().withSchema(csvHeaderDDL).build()
+        val csvHeaderDDL: List[ColumnDefinition] = SchemaDDL.createSchema(headerDDL)
+        SchemaBuilder().withSchema(csvHeaderDDL).build()
       } else {
-        val csvInferredSchemaDDL: List[Column] =
-          TableSchemaDDL.inferSchemaDDL(csv.head.size)
-        TableSchemaBuilder().withSchema(csvInferredSchemaDDL).build()
+        val csvInferredSchemaDDL: List[ColumnDefinition] =
+          SchemaDDL.inferSchemaDDL(csv.head.size)
+        SchemaBuilder().withSchema(csvInferredSchemaDDL).build()
       }
     }
 
-  def fromCsv(csvString: String, csvOptions: CsvOptions): TableSet = {
+  def fromCsv(csvString: String, csvOptions: CsvOptions): DataFrame = {
     val explodedCsv: List[List[String]] =
       explodeCsvString(csvOptions.hasSeparator.get, csvString)
 
-    val tableSchema: TableSchema = defineCsvSchema(explodedCsv, csvOptions)
+    val tableSchema: Schema = defineCsvSchema(explodedCsv, csvOptions)
 
     val csv: List[List[String]] = {
       if (csvOptions.hasHeader.get) {
@@ -46,10 +48,10 @@ trait FromCsv {
       }
     }
 
-    ToTableSet.createTableSet(csv, tableSchema)
+    ToDataFrame.createDataFrame(csv, tableSchema)
   }
 
-  def fromCsv(csvPath: Path, csvOptions: CsvOptions): TableSet = {
+  def fromCsv(csvPath: Path, csvOptions: CsvOptions): DataFrame = {
     val file: BufferedSource = Source.fromFile(csvPath.toUri)
     val fileContents: String = file.getLines().mkString("\n")
     fromCsv(fileContents, csvOptions)

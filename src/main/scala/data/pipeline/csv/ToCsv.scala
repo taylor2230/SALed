@@ -1,7 +1,7 @@
 package org.saled
 package data.pipeline.csv
 
-import data.structures.table.{Column, TableSet, Tuple, TupleElement}
+import data.structures.table.{ColumnDefinition, DataFrame, Row, ColumnData}
 
 import java.io.{File, FileWriter}
 import scala.collection.parallel.CollectionConverters.ImmutableIterableIsParallelizable
@@ -21,25 +21,25 @@ trait ToCsv {
     }
 
   def toLocalCsv(
-      tableSet: TableSet,
-      csvOptions: CsvOptions,
-      directory: String,
-      fileName: String,
-      includedTimestamp: Boolean
+                  tableSet: DataFrame,
+                  csvOptions: CsvOptions,
+                  directory: String,
+                  fileName: String,
+                  includedTimestamp: Boolean
   ): Unit = {
     val filePath: String = csvName(directory, fileName, includedTimestamp)
     val fileWriter: FileWriter = new FileWriter(new File(filePath))
     val orderedHeader =
-      tableSet.tableSchema.schema.map((c: Column) => c.toString)
+      tableSet.dataFrameSchema.schema.map((c: ColumnDefinition) => c.toString)
 
     fileWriter.write(
       s"${orderedHeader.mkString(s"${csvOptions.hasSeparator.get}")}\n"
     )
-    tableSet.table.par.foreach((row: Tuple) => {
-      if (row.tuple.nonEmpty) {
+    tableSet.dataFrame.par.foreach((row: Row) => {
+      if (row.row.nonEmpty) {
         val adjustedRow = {
-          row.tuple
-            .map((r: (String, TupleElement)) => {
+          row.row
+            .map((r: (String, ColumnData)) => {
               (r._1.toString, r._2)
             })
         }
@@ -58,11 +58,11 @@ trait ToCsv {
   }
 
   def toGCSCsv(
-      tableSet: TableSet,
-      csvOptions: CsvOptions,
-      bucket: String,
-      directory: String,
-      fileName: String,
-      includedTimestamp: Boolean
+                tableSet: DataFrame,
+                csvOptions: CsvOptions,
+                bucket: String,
+                directory: String,
+                fileName: String,
+                includedTimestamp: Boolean
   ): Unit = {}
 }

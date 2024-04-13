@@ -5,15 +5,15 @@ import variables.TestingVariables.{TESTING_VAR_INVALID_DDL_STRING, TESTING_VAR_V
 
 import org.scalatest.funsuite.AnyFunSuiteLike
 
-class TableSchemaTest extends AnyFunSuiteLike {
+class SchemaTest extends AnyFunSuiteLike {
 
   test("TableSchemaValidSchema") {
-    val tableSchema = TableSchemaBuilder().withSchema(TESTING_VAR_VALID_DDL_STRING).build()
+    val tableSchema = SchemaBuilder().withSchema(TESTING_VAR_VALID_DDL_STRING).build()
     assert(tableSchema.schema.nonEmpty)
   }
 
   test("TableSchemaInvalidSchema") {
-    val tableSchema = TableSchemaBuilder().withSchema(TESTING_VAR_INVALID_DDL_STRING).build()
+    val tableSchema = SchemaBuilder().withSchema(TESTING_VAR_INVALID_DDL_STRING).build()
     assert(tableSchema.schema.isEmpty)
   }
 
