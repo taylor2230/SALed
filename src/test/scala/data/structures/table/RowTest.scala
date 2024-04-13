@@ -8,16 +8,16 @@ import org.scalatest.funsuite.AnyFunSuiteLike
 
 import scala.collection.parallel.CollectionConverters.ImmutableIterableIsParallelizable
 
-class TupleTest extends AnyFunSuiteLike{
+class RowTest extends AnyFunSuiteLike{
   test("TupleBuilderDefault") {
-    val tuple = TupleBuilder().build()
-    assert(tuple.tuple.isEmpty)
+    val tuple = RowBuilder().build()
+    assert(tuple.row.isEmpty)
   }
 
   test("TupleBuilderValue") {
-    val column = ColumnBuilder().withColumnName("test").withDatatype(DataTypes.String).build()
+    val column = ColumnDefinitionBuilder().withColumnName("test").withDatatype(DataTypes.String).build()
     val tupleElement = TESTING_VAR_TUPLE_ELEMENT
-    val tuple = TupleBuilder().withTuple(List((column, tupleElement)).par.toMap).build()
-    assert(tuple.tuple.nonEmpty)
+    val tuple = RowBuilder().withRow(List((column, tupleElement)).par.toMap).build()
+    assert(tuple.row.nonEmpty)
   }
 }

@@ -4,7 +4,7 @@ package data.structures.table
 import data.builder.Builder
 import data.types.{DataType, DataTypes}
 
-case class Column(
+case class ColumnDefinition(
     columnName: String = "",
     dataType: DataType[_] = DataTypes.String
 ) {
@@ -13,18 +13,18 @@ case class Column(
   }
 }
 
-case class ColumnBuilder private (
+case class ColumnDefinitionBuilder private(
     columnName: String = "",
     dataType: DataType[_] = DataTypes.String
-) extends Builder[Column] {
-  def withColumnName(columnName: String): ColumnBuilder = {
+) extends Builder[ColumnDefinition] {
+  def withColumnName(columnName: String): ColumnDefinitionBuilder = {
     copy(columnName = columnName)
   }
 
-  def withDatatype(dataType: DataType[_]): ColumnBuilder = {
+  def withDatatype(dataType: DataType[_]): ColumnDefinitionBuilder = {
     copy(dataType = dataType)
   }
 
-  override def build(): Column =
-    Column(columnName = columnName, dataType = dataType)
+  override def build(): ColumnDefinition =
+    ColumnDefinition(columnName = columnName, dataType = dataType)
 }

@@ -1,8 +1,8 @@
 package org.saled
 package data.common
 
-import data.structures.table.TableSchema
+import data.structures.table.Schema
 
 trait Options {
-  val hasSchema: Option[TableSchema]
+  val hasSchema: Option[Schema]
 }

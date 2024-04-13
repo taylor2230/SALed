@@ -1,21 +1,19 @@
 package org.saled
 package data.structures.behaviors
 
-import data.structures.generic.Table
+import data.structures.generic.DatasetStructure
 import data.structures.table._
 import data.types.DataType
 
-import scala.collection.parallel.immutable.ParMap
-
-trait FilterBehavior extends Table {
+trait FilterBehavior extends DatasetStructure {
   private def executePredicate(
-      column: (String, TupleElement),
-      dataType: DataType[_],
-      predicate: _ => Boolean
+                                column: (String, ColumnData),
+                                dataType: DataType[_],
+                                predicate: _ => Boolean
   ): Boolean = {
-    if (column._2.tupleElement.nonEmpty) {
+    if (column._2.data.nonEmpty) {
       try {
-        val typeCastedValue = dataType.typeCast(column._2.tupleElement).get
+        val typeCastedValue = dataType.typeCast(column._2.data).get
         if (predicate.isInstanceOf[typeCastedValue.type => Boolean]) {
           val passedPredicate: typeCastedValue.type => Boolean = predicate.asInstanceOf[typeCastedValue.type => Boolean]
           passedPredicate(typeCastedValue)
@@ -32,72 +30,72 @@ trait FilterBehavior extends Table {
     }
   }
 
-  def isNull(cols: String*): TableSet = {
+  def isNull(cols: String*): DataFrame = {
     val columnsSet: Set[String] = listToSet(cols)
-    val result: List[Tuple] = table.filter((t: Tuple) => {
+    val result: List[Row] = dataFrame.filter((t: Row) => {
       val nullColumnsPredicate = columnsSet.filter((c: String) => {
-        t.tuple(c).tupleElement.isEmpty
+        t.row(c).data.isEmpty
       })
       nullColumnsPredicate.size == columnsSet.size
     })
 
-    TableSetBuilder()
-      .withTableSchema(tableSchema = tableSchema)
-      .withTableSet(result)
+    DataFrameBuilder()
+      .withSchema(tableSchema = dataFrameSchema)
+      .withData(result)
       .build()
   }
 
-  def isNull(cols: List[String]): TableSet = {
+  def isNull(cols: List[String]): DataFrame = {
     isNull(cols: _*)
   }
 
-  def isNull(col: String): TableSet = {
+  def isNull(col: String): DataFrame = {
     isNull(List(col))
   }
 
-  def nonNull(cols: String*): TableSet = {
+  def nonNull(cols: String*): DataFrame = {
     val columnsSet: Set[String] = listToSet(cols)
-    val result: List[Tuple] = table.filter((t: Tuple) => {
+    val result: List[Row] = dataFrame.filter((t: Row) => {
       val nonNullColumnsPredicate = columnsSet.filter((c: String) => {
-        t.tuple(c).tupleElement.nonEmpty
+        t.row(c).data.nonEmpty
       })
       nonNullColumnsPredicate.size == columnsSet.size
     })
 
-    TableSetBuilder()
-      .withTableSchema(tableSchema = tableSchema)
-      .withTableSet(result)
+    DataFrameBuilder()
+      .withSchema(tableSchema = dataFrameSchema)
+      .withData(result)
       .build()
   }
 
-  def nonNull(cols: List[String]): TableSet = {
+  def nonNull(cols: List[String]): DataFrame = {
     nonNull(cols: _*)
   }
 
-  def nonNull(col: String): TableSet = {
+  def nonNull(col: String): DataFrame = {
     nonNull(List(col))
   }
 
-  def where(col: String, predicate: _ => Boolean): TableSet = {
-    val columnDefinition: Option[Column] = tableSchema.schema.find((c: Column) => c.columnName == col)
+  def where(col: String, predicate: _ => Boolean): DataFrame = {
+    val columnDefinition: Option[ColumnDefinition] = dataFrameSchema.schema.find((c: ColumnDefinition) => c.columnName == col)
 
-    val tableSet: List[Tuple] = {
+    val tableSet: List[Row] = {
       if (columnDefinition.nonEmpty) {
-        val result: List[Tuple] = table.filter((t: Tuple) => {
-          val passFilter = t.tuple
+        val result: List[Row] = dataFrame.filter((t: Row) => {
+          val passFilter = t.row
             .filterKeys((r: String) => r == col)
-            .filter((r: (String, TupleElement)) => executePredicate(r, columnDefinition.get.dataType, predicate))
+            .filter((r: (String, ColumnData)) => executePredicate(r, columnDefinition.get.dataType, predicate))
           passFilter.nonEmpty
         })
         result
       } else {
-        table
+        dataFrame
       }
     }
 
-    TableSetBuilder()
-      .withTableSchema(tableSchema = tableSchema)
-      .withTableSet(tableSet)
+    DataFrameBuilder()
+      .withSchema(tableSchema = dataFrameSchema)
+      .withData(tableSet)
       .build()
   }
 }

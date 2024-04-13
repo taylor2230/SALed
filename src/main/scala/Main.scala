@@ -1,6 +1,7 @@
 package org.saled
 
 import data.pipeline.Pipeline
+import data.structures.table.DataFrame
 
 object Main {
   def main(args: Array[String]): Unit = {
@@ -12,7 +13,7 @@ object Main {
       """{"game":"doge", "col_1":"Loki", "col_2":2, "col_3":[1,2,3], "col_4":{"subcol_4A": "A", "subcol_4B": "B"}}"""
     }
 
-    val f = Pipeline.Source.fromJson(Seq(simpleJsonString, jsonString))
+    val f: DataFrame = Pipeline.Source.fromJson(Seq(simpleJsonString, jsonString))
 
     f.display()
 

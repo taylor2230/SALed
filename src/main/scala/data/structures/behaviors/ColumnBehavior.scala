@@ -1,19 +1,19 @@
 package org.saled
 package data.structures.behaviors
 
-import data.structures.generic.Table
+import data.structures.generic.DatasetStructure
 import data.structures.table._
 import data.types.{DataType, DataTypes}
 
 import scala.collection.parallel.immutable.ParMap
 
-trait ColumnBehavior extends Table {
+trait ColumnBehavior extends DatasetStructure {
   private def executeExpression(
-      column: (String, TupleElement),
-      expression: _ => Option[Any]
+                                 column: (String, ColumnData),
+                                 expression: _ => Option[Any]
   ): Option[Any] = {
-    if (column._2.tupleElement.nonEmpty) {
-      val typeCastedValue = column._2.tupleElement.get
+    if (column._2.data.nonEmpty) {
+      val typeCastedValue = column._2.data.get
       if (expression.isInstanceOf[typeCastedValue.type => Option[Any]]) {
         val passedExpression =
           expression.asInstanceOf[typeCastedValue.type => Option[Any]]
@@ -26,85 +26,85 @@ trait ColumnBehavior extends Table {
     }
   }
 
-  def castColumnDataType(col: String, datatype: DataType[_]): TableSet = {
+  def castColumnDataType(col: String, datatype: DataType[_]): DataFrame = {
     try {
-      val result: List[Tuple] = table.map((row: Tuple) => {
-        val updatedRow: ParMap[String, TupleElement] =
-          row.tuple.map((c: (String, TupleElement)) => {
+      val result: List[Row] = dataFrame.map((row: Row) => {
+        val updatedRow: ParMap[String, ColumnData] =
+          row.row.map((c: (String, ColumnData)) => {
             if (c._1 == col) {
               val castedValue: Option[Any] =
-                datatype.typeCast(c._2.tupleElement)
-              val column: Column = ColumnBuilder()
+                datatype.typeCast(c._2.data)
+              val column: ColumnDefinition = ColumnDefinitionBuilder()
                 .withColumnName(col)
                 .withDatatype(DataTypes.getDatatype(castedValue).get)
                 .build()
               (
                 column.columnName,
-                TupleElementBuilder().withTupleElement(castedValue).build()
+                ColumnDataBuilder().withColumnData(castedValue).build()
               )
             } else {
               c
             }
           })
-        TupleBuilder().withTuple(updatedRow).build()
+        RowBuilder().withRow(updatedRow).build()
       })
 
-      val updatedSchema: TableSchema = {
-        val castedSchema: List[Column] = tableSchema.schema.map((c: Column) => {
+      val updatedSchema: Schema = {
+        val castedSchema: List[ColumnDefinition] = dataFrameSchema.schema.map((c: ColumnDefinition) => {
           if (c.columnName == col) {
-            ColumnBuilder().withColumnName(col).withDatatype(datatype).build()
+            ColumnDefinitionBuilder().withColumnName(col).withDatatype(datatype).build()
           } else {
             c
           }
         })
 
-        TableSchemaBuilder().withSchema(castedSchema).build()
+        SchemaBuilder().withSchema(castedSchema).build()
       }
 
-      TableSetBuilder()
-        .withTableSchema(tableSchema = updatedSchema)
-        .withTableSet(result)
+      DataFrameBuilder()
+        .withSchema(tableSchema = updatedSchema)
+        .withData(result)
         .build()
     } catch {
       case _: Exception =>
         println("Failed type cast due to invalid value in TableSet");
-        TableSetBuilder()
-          .withTableSchema(tableSchema = tableSchema)
-          .withTableSet(table)
+        DataFrameBuilder()
+          .withSchema(tableSchema = dataFrameSchema)
+          .withData(dataFrame)
           .build()
     }
   }
 
-  def dropColumns(cols: String*): TableSet = {
-    val filteredTuples: List[Tuple] = table.map((r: Tuple) => {
-      val filteredRowTuples: ParMap[String, TupleElement] = r.tuple
+  def dropColumns(cols: String*): DataFrame = {
+    val filteredTuples: List[Row] = dataFrame.map((r: Row) => {
+      val filteredRowTuples: ParMap[String, ColumnData] = r.row
         .filterKeys((c: String) => {
           !cols.contains(c)
         })
         .toMap
-      TupleBuilder().withTuple(filteredRowTuples).build()
+      RowBuilder().withRow(filteredRowTuples).build()
     })
 
-    val filteredSchema: TableSchema = {
-      val filteredSchema: List[Column] =
-        tableSchema.schema.filter((c: Column) => {
+    val filteredSchema: Schema = {
+      val filteredSchema: List[ColumnDefinition] =
+        dataFrameSchema.schema.filter((c: ColumnDefinition) => {
           !cols.contains(c.columnName)
         })
 
-      TableSchemaBuilder().withSchema(filteredSchema).build()
+      SchemaBuilder().withSchema(filteredSchema).build()
     }
 
-    TableSetBuilder()
-      .withTableSchema(filteredSchema)
-      .withTableSet(filteredTuples)
+    DataFrameBuilder()
+      .withSchema(filteredSchema)
+      .withData(filteredTuples)
       .build()
   }
 
-  def dropColumns(cols: List[String]): TableSet = {
+  def dropColumns(cols: List[String]): DataFrame = {
     dropColumns(cols: _*)
   }
 
-  def dropColumn(col: String): TableSet = {
+  def dropColumn(col: String): DataFrame = {
     dropColumns(List(col))
   }
 
@@ -113,64 +113,64 @@ trait ColumnBehavior extends Table {
       newCol: String,
       datatype: DataType[_],
       expression: _ => Option[Any]
-  ): TableSet = {
-    val newColumnDefinition: Column =
-      ColumnBuilder().withColumnName(newCol).withDatatype(datatype).build()
-    val result: List[Tuple] = table.map((row: Tuple) => {
+  ): DataFrame = {
+    val newColumnDefinition: ColumnDefinition =
+      ColumnDefinitionBuilder().withColumnName(newCol).withDatatype(datatype).build()
+    val result: List[Row] = dataFrame.map((row: Row) => {
       val targetColumn =
-        row.tuple.filterKeys((p: String) => p == col)
-      val expressionColumn: ParMap[String, TupleElement] = targetColumn
-        .map((c: (String, TupleElement)) => {
+        row.row.filterKeys((p: String) => p == col)
+      val expressionColumn: ParMap[String, ColumnData] = targetColumn
+        .map((c: (String, ColumnData)) => {
           val expressionResult: Option[Any] = executeExpression(c, expression)
           (
             newColumnDefinition.columnName,
-            TupleElementBuilder().withTupleElement(expressionResult).build()
+            ColumnDataBuilder().withColumnData(expressionResult).build()
           )
         })
         .toMap
 
-      val newRow: ParMap[String, TupleElement] = {
+      val newRow: ParMap[String, ColumnData] = {
         if (col == newCol) {
-          row.tuple
+          row.row
             .filterKeys((c: String) => c != newCol)
             .toMap ++ expressionColumn
         } else {
-          row.tuple
+          row.row
         }
       }
 
-      TupleBuilder().withTuple(newRow ++ expressionColumn).build()
+      RowBuilder().withRow(newRow ++ expressionColumn).build()
     })
 
-    val updatedSchema: List[Column] = {
+    val updatedSchema: List[ColumnDefinition] = {
       if (col == newCol) {
-        tableSchema.schema.filter((c: Column) =>
+        dataFrameSchema.schema.filter((c: ColumnDefinition) =>
           c.columnName != newCol
         ) ++ List(newColumnDefinition)
       } else {
-        tableSchema.schema ++ List(newColumnDefinition)
+        dataFrameSchema.schema ++ List(newColumnDefinition)
       }
     }
 
-    TableSetBuilder()
-      .withTableSchema(tableSchema =
-        TableSchemaBuilder().withSchema(updatedSchema).build()
+    DataFrameBuilder()
+      .withSchema(tableSchema =
+        SchemaBuilder().withSchema(updatedSchema).build()
       )
-      .withTableSet(result)
+      .withData(result)
       .build()
   }
 
-  private def explodeArray(explodeCol: String): TableSet = {
-    val explodedTuples: List[Tuple] = table.flatMap((r: Tuple) => {
-      val column: Option[TupleElement] = r.tuple.get(explodeCol)
+  private def explodeArray(explodeCol: String): DataFrame = {
+    val explodedTuples: List[Row] = dataFrame.flatMap((r: Row) => {
+      val column: Option[ColumnData] = r.row.get(explodeCol)
 
       if (column.nonEmpty) {
-        val columnValue: Option[Any] = column.get.tupleElement
+        val columnValue: Option[Any] = column.get.data
         if (columnValue.get != None) {
-          val columnList = column.get.tupleElement.get.asInstanceOf[List[_]]
+          val columnList = column.get.data.get.asInstanceOf[List[_]]
           val explodedTuple = columnList.map((e: Any) => {
-            val newTuple = TupleElementBuilder().withTupleElement(Some(e)).build()
-            TupleBuilder().withTuple(r.tuple ++ ParMap((explodeCol, newTuple))).build()
+            val newTuple = ColumnDataBuilder().withColumnData(Some(e)).build()
+            RowBuilder().withRow(r.row ++ ParMap((explodeCol, newTuple))).build()
           })
           explodedTuple
         } else {
@@ -181,26 +181,26 @@ trait ColumnBehavior extends Table {
       }
     })
 
-    val updatedTableSchema: TableSchema = {
-      val schema = tableSchema.schema.map((column: Column) => {
+    val updatedTableSchema: Schema = {
+      val schema = dataFrameSchema.schema.map((column: ColumnDefinition) => {
         if (column.columnName == explodeCol) {
-          ColumnBuilder().withColumnName(explodeCol).withDatatype(DataTypes.String).build()
+          ColumnDefinitionBuilder().withColumnName(explodeCol).withDatatype(DataTypes.String).build()
         } else {
           column
         }
       })
-      TableSchemaBuilder().withSchema(schema).build()
+      SchemaBuilder().withSchema(schema).build()
     }
 
-    TableSetBuilder()
-      .withTableSet(table = explodedTuples)
-      .withTableSchema(tableSchema = updatedTableSchema)
+    DataFrameBuilder()
+      .withData(table = explodedTuples)
+      .withSchema(tableSchema = updatedTableSchema)
       .build()
 
   }
 
-  def explodeColumn(explodeCol: String): TableSet = {
-    val columnSchema: Option[Column] =  tableSchema.schema.find((p: Column) => {
+  def explodeColumn(explodeCol: String): DataFrame = {
+    val columnSchema: Option[ColumnDefinition] =  dataFrameSchema.schema.find((p: ColumnDefinition) => {
       p.columnName == explodeCol
     })
 
@@ -208,15 +208,15 @@ trait ColumnBehavior extends Table {
       columnSchema.get.dataType match {
         case x: DataTypes.List.type => explodeArray(explodeCol)
         case _ =>
-          TableSetBuilder()
-            .withTableSet(table = table)
-            .withTableSchema(tableSchema = tableSchema)
+          DataFrameBuilder()
+            .withData(table = dataFrame)
+            .withSchema(tableSchema = dataFrameSchema)
             .build()
       }
     } else {
-      TableSetBuilder()
-        .withTableSet(table = table)
-        .withTableSchema(tableSchema = tableSchema)
+      DataFrameBuilder()
+        .withData(table = dataFrame)
+        .withSchema(tableSchema = dataFrameSchema)
         .build()
     }
   }

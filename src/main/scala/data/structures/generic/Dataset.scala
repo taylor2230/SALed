@@ -1,18 +1,25 @@
 package org.saled
 package data.structures.generic
 
-import data.structures.table.{Column, Tuple, TupleElement}
+import data.structures.behaviors.{
+  ColumnBehavior,
+  FilterBehavior,
+  SelectBehavior
+}
+import data.structures.table.{ColumnData, ColumnDefinition, Row}
 
-trait Table extends TableStructure {
-  def listToSet(columns: Seq[String]): Set[String] = {
-    columns.toSet
-  }
-
+trait Dataset
+    extends DatasetStructure
+    with ColumnBehavior
+    with FilterBehavior
+    with SelectBehavior {
   def display(limit: Int = 100, prettyPrint: Boolean = false): Unit = {
     val printLen: Int = 10
-    val tableLimit: List[Tuple] = table.take(Math.min(100, Math.max(limit, 2)))
+    val tableLimit: List[Row] =
+      dataFrame.take(Math.min(100, Math.max(limit, 2)))
 
-    val orderedHeader = tableSchema.schema.map((c: Column) => c.toString)
+    val orderedHeader =
+      dataFrameSchema.schema.map((c: ColumnDefinition) => c.toString)
 
     println(
       orderedHeader
@@ -21,11 +28,11 @@ trait Table extends TableStructure {
         .format(1)
     )
 
-    tableLimit.foreach((row: Tuple) => {
-      if (row.tuple.nonEmpty) {
+    tableLimit.foreach((row: Row) => {
+      if (row.row.nonEmpty) {
         val adjustedRow = {
-          row.tuple
-            .map((r: (String, TupleElement)) => {
+          row.row
+            .map((r: (String, ColumnData)) => {
               (r._1, r._2)
             })
         }
