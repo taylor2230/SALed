@@ -29,8 +29,8 @@ case class DataFrameBuilder(
 }
 
 object ToDataFrame:
-  def createDataFrame(data: List[List[?]], schema: Schema): DataFrame = {
-    val tableTuples: List[Row] = data.map((r: List[?]) => {
+  def createDataFrame(data: Seq[Seq[?]], schema: Schema): DataFrame = {
+    val tableTuples: List[Row] = data.map((r: Seq[?]) => {
       val zippedRow: List[(String, Any)] = {
         for ((column, row) <- schema.schema zip r)
           yield (column.columnName, row)
@@ -54,7 +54,7 @@ object ToDataFrame:
           .toMap
 
       RowBuilder().withRow(tupledRows ++ missingTuples).build()
-    })
+    }).toList
 
     DataFrameBuilder()
       .withSchema(schema)

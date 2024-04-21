@@ -6,7 +6,7 @@ import data.structures.table.SchemaDDL.createSchema
 import data.types.{DataType, DataTypes}
 
 import scala.collection.immutable.ListMap
-import scala.collection.parallel.immutable.{ParMap, ParSeq}
+import scala.collection.parallel.immutable.ParSeq
 
 case class Schema(schema: List[ColumnDefinition] = List.empty) {
   def getSchemaStrings: List[String] = {
@@ -48,7 +48,7 @@ object SchemaDDL:
       case DataTypes.String.datatypeDefinition     => DataTypes.String
       case DataTypes.List.datatypeDefinition       => DataTypes.List
       case DataTypes.Map.datatypeDefinition        => DataTypes.Map
-      case _                                       => DataTypes.String
+      case _                                       => DataTypes.Any
     }
   }
 
@@ -99,7 +99,7 @@ object SchemaDDL:
       val columnRanges: List[Int] = List.range(0, columnSize)
       columnRanges
         .map((c: Int) => {
-          s"col_$c String"
+          s"col_$c Any"
         })
         .mkString(", ")
     }

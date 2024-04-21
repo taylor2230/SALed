@@ -13,10 +13,10 @@ object Main:
       """{"game":"doge", "col_1":"Loki", "col_2":2, "col_3":[1,2,3], "col_4":{"subcol_4A": "A", "subcol_4B": "B"}}"""
     }
 
-    val f: DataFrame = Pipeline.Source.fromJson(Seq(simpleJsonString, jsonString))
+    val f: DataFrame =
+      Pipeline.Source.fromJson(Seq(simpleJsonString, jsonString))
 
     f.display()
 
     println(Pipeline.Sink.toJson(f))
   }
-

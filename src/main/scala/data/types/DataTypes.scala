@@ -49,6 +49,19 @@ object DataTypes {
     }
   }
 
+  case object Any extends DataType[Any] with DatatypeDefinition {
+    override def toString: String = "Any"
+    override val datatypeDefinition: String = "Any"
+
+    override def typeCast(element: Option[Any]): Option[Any] = {
+      if (element.nonEmpty) {
+        element
+      } else {
+        None
+      }
+    }
+  }
+
   case object Boolean extends DataType[Boolean] with DatatypeDefinition {
     override def toString: String = "Boolean"
     override val datatypeDefinition: String = "Boolean"
@@ -215,6 +228,7 @@ object DataTypes {
         case x: Boolean   => Some(Boolean)
         case x: List[?]   => Some(List)
         case x: Map[?, ?] => Some(Map)
+        case x: Any       => Some(Any)
         case _            => None
       }
     } else {

@@ -2,13 +2,14 @@ package org.saled
 package data.structures.behaviors
 
 import data.structures.generic.DatasetStructure
-import data.structures.table._
+import data.structures.table.*
 
 import scala.collection.parallel.immutable.ParMap
 
 trait SelectBehavior extends DatasetStructure {
   def select(cols: String*): DataFrame = {
-    val columnsSet: Set[String] = listToSet(cols)
+    import org.saled.data.implicits.Conversions.seqToSet
+    val columnsSet: Set[String] = seqToSet(cols)
     val result: List[Row] = dataFrame.map((row: Row) => {
       val filteredTuple: ParMap[String, ColumnData] = row.row.par
         .filterKeys((column: String) => columnsSet.contains(column))
