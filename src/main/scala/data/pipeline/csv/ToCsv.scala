@@ -21,11 +21,11 @@ trait ToCsv {
     }
 
   def toLocalCsv(
-                  tableSet: DataFrame,
-                  csvOptions: CsvOptions,
-                  directory: String,
-                  fileName: String,
-                  includedTimestamp: Boolean
+      tableSet: DataFrame,
+      csvOptions: CsvOptions,
+      directory: String,
+      fileName: String,
+      includedTimestamp: Boolean
   ): Unit = {
     val filePath: String = csvName(directory, fileName, includedTimestamp)
     val fileWriter: FileWriter = new FileWriter(new File(filePath))
@@ -58,11 +58,11 @@ trait ToCsv {
   }
 
   def toGCSCsv(
-                tableSet: DataFrame,
-                csvOptions: CsvOptions,
-                bucket: String,
-                directory: String,
-                fileName: String,
-                includedTimestamp: Boolean
+      tableSet: DataFrame,
+      csvOptions: CsvOptions,
+      bucket: String,
+      directory: String,
+      fileName: String,
+      includedTimestamp: Boolean
   ): Unit = {}
 }

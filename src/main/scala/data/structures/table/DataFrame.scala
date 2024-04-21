@@ -10,9 +10,9 @@ import scala.collection.parallel.immutable.ParMap
 case class DataFrame(dataFrameSchema: Schema, dataFrame: List[Row])
     extends Dataset {}
 
-case class DataFrameBuilder private(
-                                     schema: Schema = SchemaBuilder().build(),
-                                     data: List[Row] = List.empty
+case class DataFrameBuilder(
+    schema: Schema = SchemaBuilder().build(),
+    data: List[Row] = List.empty
 ) extends Builder[DataFrame] {
 
   def withSchema(tableSchema: Schema): DataFrameBuilder =
@@ -28,13 +28,13 @@ case class DataFrameBuilder private(
   )
 }
 
-object ToDataFrame {
-  def createDataFrame(data: List[List[_]], schema: Schema): DataFrame = {
-    val tableTuples: List[Row] = data.map((r: List[_]) => {
+object ToDataFrame:
+  def createDataFrame(data: List[List[?]], schema: Schema): DataFrame = {
+    val tableTuples: List[Row] = data.map((r: List[?]) => {
       val zippedRow: List[(String, Any)] = {
-        for ((column, row) <- schema.schema zip r) yield (column.columnName, row)
+        for ((column, row) <- schema.schema zip r)
+          yield (column.columnName, row)
       }
-
 
       val tupledRows: ParMap[String, ColumnData] = zippedRow.par
         .map((row: (String, Any)) => {
@@ -45,9 +45,13 @@ object ToDataFrame {
         .toMap
 
       val missingTuples: ParMap[String, ColumnData] =
-        schema.schema.filter((c: ColumnDefinition) => !tupledRows.contains(c.columnName)).map((c: ColumnDefinition) => {
-          (c.columnName, ColumnDataBuilder().withColumnData(None).build())
-        }).par.toMap
+        schema.schema
+          .filter((c: ColumnDefinition) => !tupledRows.contains(c.columnName))
+          .map((c: ColumnDefinition) => {
+            (c.columnName, ColumnDataBuilder().withColumnData(None).build())
+          })
+          .par
+          .toMap
 
       RowBuilder().withRow(tupledRows ++ missingTuples).build()
     })
@@ -58,4 +62,3 @@ object ToDataFrame {
       .build()
       .select(schema.getSchemaStrings)
   }
-}

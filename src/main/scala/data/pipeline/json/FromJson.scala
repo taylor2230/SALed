@@ -30,7 +30,8 @@ trait FromJson {
     val extractedJson: ParSeq[Map[String, Any]] = extractJson(json)
 
     val inferredJsonSchema: Schema = {
-      val columns: List[ColumnDefinition] = SchemaDDL.inferJsonSchemaDDL(extractedJson).distinct
+      val columns: List[ColumnDefinition] =
+        SchemaDDL.inferJsonSchemaDDL(extractedJson).distinct
       SchemaBuilder().withSchema(columns).build()
     }
 
