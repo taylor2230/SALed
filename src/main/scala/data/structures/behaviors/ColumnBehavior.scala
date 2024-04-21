@@ -9,8 +9,8 @@ import scala.collection.parallel.immutable.ParMap
 
 trait ColumnBehavior extends DatasetStructure {
   private def executeExpression(
-                                 column: (String, ColumnData),
-                                 expression: _ => Option[Any]
+      column: (String, ColumnData),
+      expression: ? => Option[Any]
   ): Option[Any] = {
     if (column._2.data.nonEmpty) {
       val typeCastedValue = column._2.data.get
@@ -50,13 +50,17 @@ trait ColumnBehavior extends DatasetStructure {
       })
 
       val updatedSchema: Schema = {
-        val castedSchema: List[ColumnDefinition] = dataFrameSchema.schema.map((c: ColumnDefinition) => {
-          if (c.columnName == col) {
-            ColumnDefinitionBuilder().withColumnName(col).withDatatype(datatype).build()
-          } else {
-            c
-          }
-        })
+        val castedSchema: List[ColumnDefinition] =
+          dataFrameSchema.schema.map((c: ColumnDefinition) => {
+            if (c.columnName == col) {
+              ColumnDefinitionBuilder()
+                .withColumnName(col)
+                .withDatatype(datatype)
+                .build()
+            } else {
+              c
+            }
+          })
 
         SchemaBuilder().withSchema(castedSchema).build()
       }
@@ -101,7 +105,7 @@ trait ColumnBehavior extends DatasetStructure {
   }
 
   def dropColumns(cols: List[String]): DataFrame = {
-    dropColumns(cols: _*)
+    dropColumns(cols*)
   }
 
   def dropColumn(col: String): DataFrame = {
@@ -111,11 +115,14 @@ trait ColumnBehavior extends DatasetStructure {
   def withNewColumn(
       col: String,
       newCol: String,
-      datatype: DataType[_],
-      expression: _ => Option[Any]
+      datatype: DataType[?],
+      expression: ? => Option[Any]
   ): DataFrame = {
     val newColumnDefinition: ColumnDefinition =
-      ColumnDefinitionBuilder().withColumnName(newCol).withDatatype(datatype).build()
+      ColumnDefinitionBuilder()
+        .withColumnName(newCol)
+        .withDatatype(datatype)
+        .build()
     val result: List[Row] = dataFrame.map((row: Row) => {
       val targetColumn =
         row.row.filterKeys((p: String) => p == col)
@@ -170,7 +177,9 @@ trait ColumnBehavior extends DatasetStructure {
           val columnList = column.get.data.get.asInstanceOf[List[_]]
           val explodedTuple = columnList.map((e: Any) => {
             val newTuple = ColumnDataBuilder().withColumnData(Some(e)).build()
-            RowBuilder().withRow(r.row ++ ParMap((explodeCol, newTuple))).build()
+            RowBuilder()
+              .withRow(r.row ++ ParMap((explodeCol, newTuple)))
+              .build()
           })
           explodedTuple
         } else {
@@ -184,7 +193,10 @@ trait ColumnBehavior extends DatasetStructure {
     val updatedTableSchema: Schema = {
       val schema = dataFrameSchema.schema.map((column: ColumnDefinition) => {
         if (column.columnName == explodeCol) {
-          ColumnDefinitionBuilder().withColumnName(explodeCol).withDatatype(DataTypes.String).build()
+          ColumnDefinitionBuilder()
+            .withColumnName(explodeCol)
+            .withDatatype(DataTypes.String)
+            .build()
         } else {
           column
         }
@@ -200,9 +212,10 @@ trait ColumnBehavior extends DatasetStructure {
   }
 
   def explodeColumn(explodeCol: String): DataFrame = {
-    val columnSchema: Option[ColumnDefinition] =  dataFrameSchema.schema.find((p: ColumnDefinition) => {
-      p.columnName == explodeCol
-    })
+    val columnSchema: Option[ColumnDefinition] =
+      dataFrameSchema.schema.find((p: ColumnDefinition) => {
+        p.columnName == explodeCol
+      })
 
     if (columnSchema.nonEmpty) {
       columnSchema.get.dataType match {

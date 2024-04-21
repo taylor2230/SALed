@@ -16,11 +16,15 @@ case class Schema(schema: List[ColumnDefinition] = List.empty) {
   }
 
   override def toString: String = {
-    schema.map((c: ColumnDefinition) => {s"${c.columnName} ${c.dataType.toString}"}).mkString(", ")
+    schema
+      .map((c: ColumnDefinition) => {
+        s"${c.columnName} ${c.dataType.toString}"
+      })
+      .mkString(", ")
   }
 }
 
-case class SchemaBuilder private(schema: List[ColumnDefinition] = List.empty)
+case class SchemaBuilder(schema: List[ColumnDefinition] = List.empty)
     extends Builder[Schema] {
 
   def withSchema(schema: String): SchemaBuilder = {
@@ -33,45 +37,45 @@ case class SchemaBuilder private(schema: List[ColumnDefinition] = List.empty)
   override def build(): Schema = Schema(schema = schema)
 }
 
-object SchemaDDL {
-  private def getDatatype(dataTypeString: String): DataType[_] = {
+object SchemaDDL:
+  private def getDatatype(dataTypeString: String): DataType[?] = {
     dataTypeString match {
-      case DataTypes.Integer.datatypeDefinition => DataTypes.Integer
-      case DataTypes.Double.datatypeDefinition => DataTypes.Double
-      case DataTypes.Float.datatypeDefinition => DataTypes.Float
+      case DataTypes.Integer.datatypeDefinition    => DataTypes.Integer
+      case DataTypes.Double.datatypeDefinition     => DataTypes.Double
+      case DataTypes.Float.datatypeDefinition      => DataTypes.Float
       case DataTypes.BigInteger.datatypeDefinition => DataTypes.BigInteger
-      case DataTypes.Boolean.datatypeDefinition => DataTypes.Boolean
-      case DataTypes.String.datatypeDefinition  => DataTypes.String
-      case DataTypes.List.datatypeDefinition => DataTypes.List
-      case DataTypes.Map.datatypeDefinition => DataTypes.Map
-      case _                                    => DataTypes.String
+      case DataTypes.Boolean.datatypeDefinition    => DataTypes.Boolean
+      case DataTypes.String.datatypeDefinition     => DataTypes.String
+      case DataTypes.List.datatypeDefinition       => DataTypes.List
+      case DataTypes.Map.datatypeDefinition        => DataTypes.Map
+      case _                                       => DataTypes.String
     }
   }
 
   private val ddlStringToColumns: String => List[ColumnDefinition] =
     (ddlString: String) => {
       val parsedDDLStringToColumn
-          : ListMap[String, DataType[_]] => List[ColumnDefinition] =
-        (ddlMap: ListMap[String, DataType[_]]) => {
+          : ListMap[String, DataType[?]] => List[ColumnDefinition] =
+        (ddlMap: ListMap[String, DataType[?]]) => {
           ddlMap
-            .map((rawColumn: (String, DataType[_])) => {
+            .map((rawColumn: (String, DataType[?])) => {
               ColumnDefinition(rawColumn._1, rawColumn._2)
             })
             .toList
         }
 
-      val parsedDDL: ListMap[String, DataType[_]] = parseDDL(ddlString)
+      val parsedDDL: ListMap[String, DataType[?]] = parseDDL(ddlString)
       parsedDDLStringToColumn(parsedDDL)
     }
 
-  private def parseDDL(ddlString: String): ListMap[String, DataType[_]] = {
+  private def parseDDL(ddlString: String): ListMap[String, DataType[?]] = {
     val tupledDDL = ddlString
       .split(",")
       .map((columnDDL: String) => {
         val columnDefinition = columnDDL.trim.split(" ")
         columnDefinition.head -> getDatatype(columnDefinition.last)
       })
-    ListMap(tupledDDL: _*)
+    ListMap(tupledDDL*)
   }
 
   def createSchema(ddlString: String): List[ColumnDefinition] = {
@@ -80,7 +84,9 @@ object SchemaDDL {
         ddlStringToColumns(ddlString)
       }
       println(
-        s"TableSchema:\n${schema.map((c: ColumnDefinition) => { s"${c.toString} (${c.dataType})" }).mkString(" | ")}\n".format(1)
+        s"TableSchema:\n${schema
+            .map((c: ColumnDefinition) => { s"${c.toString} (${c.dataType})" })
+            .mkString(" | ")}\n".format(1)
       )
       schema
     } else {
@@ -91,9 +97,11 @@ object SchemaDDL {
   def inferSchemaDDL(columnSize: Int): List[ColumnDefinition] = {
     val inferredDDL: String = {
       val columnRanges: List[Int] = List.range(0, columnSize)
-      columnRanges.map((c: Int) => {
+      columnRanges
+        .map((c: Int) => {
           s"col_$c String"
-        }).mkString(", ")
+        })
+        .mkString(", ")
     }
 
     val schema: List[ColumnDefinition] = {
@@ -103,22 +111,30 @@ object SchemaDDL {
     schema
   }
 
-  def inferJsonSchemaDDL(json: ParSeq[Map[String, Any]]): List[ColumnDefinition] = {
-    val jsonKeys: ParSeq[(String, Option[DataType[_]])] = json.flatMap((r: Map[String, Any]) => {
-      r.map((column: (String, Any)) => {
-        (column._1, DataTypes.getDatatype(Option(column._2)))
+  def inferJsonSchemaDDL(
+      json: ParSeq[Map[String, Any]]
+  ): List[ColumnDefinition] = {
+    val jsonKeys: ParSeq[(String, Option[DataType[?]])] =
+      json.flatMap((r: Map[String, Any]) => {
+        r.map((column: (String, Any)) => {
+          (column._1, DataTypes.getDatatype(Option(column._2)))
+        })
       })
-    })
 
-    jsonKeys.map((col: (String, Option[DataType[_]])) => {
-      if (col._2.nonEmpty) {
-        Some(ColumnDefinitionBuilder().withColumnName(col._1).withDatatype(col._2.get).build())
-      } else {
-        None
-      }
-    })
-      .filter((c: Option[ColumnDefinition]) => {c.nonEmpty})
-      .map((c: Option[ColumnDefinition]) => {c.get})
+    jsonKeys
+      .map((col: (String, Option[DataType[?]])) => {
+        if (col._2.nonEmpty) {
+          Some(
+            ColumnDefinitionBuilder()
+              .withColumnName(col._1)
+              .withDatatype(col._2.get)
+              .build()
+          )
+        } else {
+          None
+        }
+      })
+      .filter((c: Option[ColumnDefinition]) => { c.nonEmpty })
+      .map((c: Option[ColumnDefinition]) => { c.get })
       .toList
   }
-}

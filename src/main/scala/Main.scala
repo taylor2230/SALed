@@ -3,7 +3,7 @@ package org.saled
 import data.pipeline.Pipeline
 import data.structures.table.DataFrame
 
-object Main {
+object Main:
   def main(args: Array[String]): Unit = {
     val simpleJsonString: String = {
       """{"game":"bloons", "age": 2, "players":[1,2,3], "col_2": 2}"""
@@ -19,4 +19,4 @@ object Main {
 
     println(Pipeline.Sink.toJson(f))
   }
-}
+

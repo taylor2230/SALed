@@ -1,9 +1,7 @@
 package org.saled
 package data.pipeline.csv
 
-import data.structures.table._
-
-import org.saled.data.structures.generic.Dataset
+import data.structures.table.*
 
 import java.nio.file.Path
 import scala.collection.parallel.CollectionConverters.ImmutableIterableIsParallelizable
@@ -13,7 +11,8 @@ trait FromCsv {
   private val explodeCsvString: (String, String) => List[List[String]] =
     (delimiter: String, csvContent: String) => {
       val splitRows: List[String] = csvContent.split("\n").toList
-      splitRows.par.map((r: String) => {
+      splitRows.par
+        .map((r: String) => {
           r.split(delimiter).toList
         })
         .toList
@@ -24,8 +23,10 @@ trait FromCsv {
       if (csvOptions.hasSchema.nonEmpty) {
         csvOptions.hasSchema.get
       } else if (csvOptions.hasHeader.get) {
-        val headerDDL = csv.head.map((c: String) => {s"$c String"}).mkString(",")
-        val csvHeaderDDL: List[ColumnDefinition] = SchemaDDL.createSchema(headerDDL)
+        val headerDDL =
+          csv.head.map((c: String) => { s"$c String" }).mkString(",")
+        val csvHeaderDDL: List[ColumnDefinition] =
+          SchemaDDL.createSchema(headerDDL)
         SchemaBuilder().withSchema(csvHeaderDDL).build()
       } else {
         val csvInferredSchemaDDL: List[ColumnDefinition] =

@@ -29,7 +29,7 @@ trait SelectBehavior extends DatasetStructure {
   }
 
   def select(cols: List[String]): DataFrame = {
-    select(cols: _*)
+    select(cols*)
   }
 
   def select(col: String): DataFrame = {

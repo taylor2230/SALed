@@ -11,7 +11,7 @@ case class CsvOptions(
     hasSchema: Option[Schema] = None
 ) extends Options
 
-case class CsvOptionsBuilder private (
+case class CsvOptionsBuilder(
     hasHeader: Option[Boolean] = Some(true),
     hasSeparator: Option[String] = Some(","),
     hasSchema: Option[Schema] = None

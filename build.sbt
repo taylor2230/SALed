@@ -1,6 +1,6 @@
 ThisBuild / version := "0.0.1"
 
-ThisBuild / scalaVersion := "2.13.13"
+ThisBuild / scalaVersion := "3.4.1"
 
 
 val baseLibraries: Seq[ModuleID] = Seq(
@@ -10,7 +10,7 @@ val baseLibraries: Seq[ModuleID] = Seq(
 )
 
 val testingLibraries: Seq[ModuleID] = Seq(
-  "org.scalatest" %% "scalatest" % "3.2.18" % Test
+  "org.scalatest" %% "scalatest" % "3.2.18" % Test,
 
 )
 

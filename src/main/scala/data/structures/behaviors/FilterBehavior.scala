@@ -7,15 +7,16 @@ import data.types.DataType
 
 trait FilterBehavior extends DatasetStructure {
   private def executePredicate(
-                                column: (String, ColumnData),
-                                dataType: DataType[_],
-                                predicate: _ => Boolean
+      column: (String, ColumnData),
+      dataType: DataType[?],
+      predicate: ? => Boolean
   ): Boolean = {
     if (column._2.data.nonEmpty) {
       try {
         val typeCastedValue = dataType.typeCast(column._2.data).get
         if (predicate.isInstanceOf[typeCastedValue.type => Boolean]) {
-          val passedPredicate: typeCastedValue.type => Boolean = predicate.asInstanceOf[typeCastedValue.type => Boolean]
+          val passedPredicate: typeCastedValue.type => Boolean =
+            predicate.asInstanceOf[typeCastedValue.type => Boolean]
           passedPredicate(typeCastedValue)
         } else {
           println("Invalid predicate execution due to mismatched input type")
@@ -23,7 +24,9 @@ trait FilterBehavior extends DatasetStructure {
         }
       } catch {
         case x: Exception =>
-          println(s"Failed predicate conversion; skipping predicate; ${x.getMessage}"); false;
+          println(
+            s"Failed predicate conversion; skipping predicate; ${x.getMessage}"
+          ); false;
       }
     } else {
       false
@@ -69,22 +72,25 @@ trait FilterBehavior extends DatasetStructure {
   }
 
   def nonNull(cols: List[String]): DataFrame = {
-    nonNull(cols: _*)
+    nonNull(cols*)
   }
 
   def nonNull(col: String): DataFrame = {
     nonNull(List(col))
   }
 
-  def where(col: String, predicate: _ => Boolean): DataFrame = {
-    val columnDefinition: Option[ColumnDefinition] = dataFrameSchema.schema.find((c: ColumnDefinition) => c.columnName == col)
+  def where(col: String, predicate: ? => Boolean): DataFrame = {
+    val columnDefinition: Option[ColumnDefinition] =
+      dataFrameSchema.schema.find((c: ColumnDefinition) => c.columnName == col)
 
     val tableSet: List[Row] = {
       if (columnDefinition.nonEmpty) {
         val result: List[Row] = dataFrame.filter((t: Row) => {
           val passFilter = t.row
             .filterKeys((r: String) => r == col)
-            .filter((r: (String, ColumnData)) => executePredicate(r, columnDefinition.get.dataType, predicate))
+            .filter((r: (String, ColumnData)) =>
+              executePredicate(r, columnDefinition.get.dataType, predicate)
+            )
           passFilter.nonEmpty
         })
         result
