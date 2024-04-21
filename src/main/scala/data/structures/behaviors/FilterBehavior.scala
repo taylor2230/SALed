@@ -2,7 +2,7 @@ package org.saled
 package data.structures.behaviors
 
 import data.structures.generic.DatasetStructure
-import data.structures.table._
+import data.structures.table.*
 import data.types.DataType
 
 trait FilterBehavior extends DatasetStructure {
@@ -34,7 +34,8 @@ trait FilterBehavior extends DatasetStructure {
   }
 
   def isNull(cols: String*): DataFrame = {
-    val columnsSet: Set[String] = listToSet(cols)
+    import org.saled.data.implicits.Conversions.seqToSet
+    val columnsSet: Set[String] = seqToSet(cols)
     val result: List[Row] = dataFrame.filter((t: Row) => {
       val nullColumnsPredicate = columnsSet.filter((c: String) => {
         t.row(c).data.isEmpty
@@ -57,7 +58,8 @@ trait FilterBehavior extends DatasetStructure {
   }
 
   def nonNull(cols: String*): DataFrame = {
-    val columnsSet: Set[String] = listToSet(cols)
+    import org.saled.data.implicits.Conversions.seqToSet
+    val columnsSet: Set[String] = seqToSet(cols)
     val result: List[Row] = dataFrame.filter((t: Row) => {
       val nonNullColumnsPredicate = columnsSet.filter((c: String) => {
         t.row(c).data.nonEmpty
