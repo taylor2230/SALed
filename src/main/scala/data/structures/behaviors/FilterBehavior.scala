@@ -50,7 +50,7 @@ trait FilterBehavior extends DatasetStructure {
   }
 
   def isNull(cols: List[String]): DataFrame = {
-    isNull(cols: _*)
+    isNull(cols*)
   }
 
   def isNull(col: String): DataFrame = {
