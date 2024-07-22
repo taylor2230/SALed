@@ -43,9 +43,9 @@ trait FromJson {
       })
       .toList
 
-    val tableSet: DataFrame =
+    val dataFrame: DataFrame =
       ToDataFrame.createDataFrame(structuredJsonData, inferredJsonSchema)
 
-    tableSet
+    dataFrame
   }
 }

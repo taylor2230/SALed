@@ -3,7 +3,6 @@ package data.structures.table
 
 import data.builder.Builder
 import data.structures.generic.Dataset
-
 import scala.collection.parallel.CollectionConverters.ImmutableIterableIsParallelizable
 import scala.collection.parallel.immutable.ParMap
 
@@ -11,7 +10,10 @@ case class DataFrame(
     dataFrameSchema: Schema = SchemaBuilder().build(),
     dataFrame: List[Row] = List.empty
 ) extends Dataset {
-  def unionDF(df: DataFrame): DataFrame = {
+  def unionDF(df: DataFrame, blendSchema: Boolean = false, distinct: Boolean = false): DataFrame = {
+    /*
+     * merge schemas, validate types, select from each DF
+     * */
     this
   }
 }

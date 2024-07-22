@@ -21,7 +21,7 @@ trait ToCsv {
     }
 
   def toLocalCsv(
-      tableSet: DataFrame,
+      dataFrame: DataFrame,
       csvOptions: CsvOptions,
       directory: String,
       fileName: String,
@@ -30,17 +30,17 @@ trait ToCsv {
     val filePath: String = csvName(directory, fileName, includedTimestamp)
     val fileWriter: FileWriter = new FileWriter(new File(filePath))
     val orderedHeader =
-      tableSet.dataFrameSchema.schema.map((c: ColumnDefinition) => c.toString)
+      dataFrame.dataFrameSchema.schema.map((c: ColumnDefinition) => c.toString)
 
     fileWriter.write(
       s"${orderedHeader.mkString(s"${csvOptions.hasSeparator.get}")}\n"
     )
-    tableSet.dataFrame.par.foreach((row: Row) => {
+    dataFrame.dataFrame.par.foreach((row: Row) => {
       if (row.row.nonEmpty) {
         val adjustedRow = {
           row.row
             .map((r: (String, ColumnData)) => {
-              (r._1.toString, r._2)
+              (r._1, r._2)
             })
         }
 
@@ -58,7 +58,7 @@ trait ToCsv {
   }
 
   def toGCSCsv(
-      tableSet: DataFrame,
+      dataFrame: DataFrame,
       csvOptions: CsvOptions,
       bucket: String,
       directory: String,

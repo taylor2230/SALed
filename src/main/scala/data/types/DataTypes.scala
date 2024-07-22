@@ -229,7 +229,7 @@ object DataTypes {
         case x: List[?]   => Some(List)
         case x: Map[?, ?] => Some(Map)
         case x: Any       => Some(Any)
-        case _            => None
+        case null            => None
       }
     } else {
       Some(DataTypes.String)
