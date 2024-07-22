@@ -13,7 +13,7 @@ ___
 > * Clustering
 
 > Read/Write:
-> * Memory Data (Read only)
+> * Iceberg
 > * Postgres
 > * UnionDF
 > * UnionDistinctDF
