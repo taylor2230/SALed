@@ -174,7 +174,7 @@ trait ColumnBehavior extends DatasetStructure {
       if (column.nonEmpty) {
         val columnValue: Option[Any] = column.get.data
         if (columnValue.get != None) {
-          val columnList = column.get.data.get.asInstanceOf[List[_]]
+          val columnList = column.get.data.get.asInstanceOf[List[?]]
           val explodedTuple = columnList.map((e: Any) => {
             val newTuple = ColumnDataBuilder().withColumnData(Some(e)).build()
             RowBuilder()

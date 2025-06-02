@@ -17,6 +17,5 @@ object Main:
       Pipeline.Source.fromJson(Seq(simpleJsonString, jsonString))
 
     f.display()
-    
     println(Pipeline.Sink.toJson(f))
   }
