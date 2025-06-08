@@ -2,12 +2,19 @@ ThisBuild / version := "0.0.1"
 
 ThisBuild / scalaVersion := "3.4.2"
 
-val icebergVersion: String = "1.5.2"
+val arrowVersion: String = "18.3.0"
+val icebergVersion: String = "1.9.1"
 
 val baseLibraries: Seq[ModuleID] = Seq(
-  "org.scala-lang.modules" %% "scala-parallel-collections" % "1.0.4",
+  "org.scala-lang.modules" %% "scala-parallel-collections" % "1.2.0",
   "org.json4s" %% "json4s-native" % "4.0.7",
   "org.json4s" %% "json4s-jackson" % "4.0.7"
+)
+
+val arrowLibraries: Seq[ModuleID] = Seq(
+  "org.apache.arrow" % "arrow-vector" % arrowVersion,
+  "org.apache.arrow" % "arrow-memory-netty" % arrowVersion % "runtime"
+
 )
 
 val icebergLibraries: Seq[ModuleID] = Seq(
@@ -19,7 +26,7 @@ val icebergLibraries: Seq[ModuleID] = Seq(
 )
 
 val testingLibraries: Seq[ModuleID] = Seq(
-  "org.scalatest" %% "scalatest" % "3.2.18" % Test,
+  "org.scalatest" %% "scalatest" % "3.2.19" % Test,
 
 )
 
@@ -27,5 +34,5 @@ lazy val root = (project in file("."))
   .settings(
     name := "SALed",
     idePackagePrefix := Some("org.saled"),
-    libraryDependencies ++= baseLibraries ++ icebergLibraries ++testingLibraries
+    libraryDependencies ++= baseLibraries ++ arrowLibraries ++ icebergLibraries ++ testingLibraries
   )

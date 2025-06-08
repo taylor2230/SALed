@@ -1,7 +1,7 @@
 package org.saled
 
 import data.pipeline.Pipeline
-import data.structures.table.DataFrame
+import data.structures.table.{ArrowSchemaDDL, DataFrame}
 
 object Main:
   def main(args: Array[String]): Unit = {
@@ -17,6 +17,11 @@ object Main:
       Pipeline.Source.fromJson(Seq(simpleJsonString, jsonString))
 
     f.display()
-    
     println(Pipeline.Sink.toJson(f))
+
+
+    val testArrowSchemaDDL = "test String, test2 Decimal, test3 BigInt, test4 Struct"
+    val t = ArrowSchemaDDL.createSchema(testArrowSchemaDDL)
+    print(t)
+
   }

@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ScalaSbtSettings">
-    <option name="customLauncherPath" />
-    <option name="customVMEnabled" value="true" />
     <option name="customVMPath" value="$PROJECT_DIR$/../../../../../Java/JavaVirtualMachines/openjdk-21.0.2/Contents/Home" />
     <option name="linkedExternalProjectsSettings">
       <SbtProjectSettings>

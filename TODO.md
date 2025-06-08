@@ -1,5 +1,10 @@
 # TODO
 ___
+> Arrow:
+> * Migrate Dataframe base to Arrow
+> * Migrate Schema to Arrow
+> * Migrate types to Arrow
+
 
 > Datatypes:
 > * Explode maps
